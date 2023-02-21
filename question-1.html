@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="css/basic.css">
 
     <script src="three.js"></script>
+    <script src="js/OrbitControls.js"></script>
     <script src="js/Detector.js"></script>
     <script type="text/javascript">
         let tree = THREE;
@@ -16,16 +17,15 @@
         let renderer = null;
         let scene = null;
         let camera = null;
-        let objects = {};
         let systemeSolaire = null;
         let systemeTerre = null;
         let soleil = null;
         let terre = null;
         let lune = null;
-        let fracTime = null;
         let cameraAngle = null;
         let orbiteTerre = null;
         let orbiteLune = null;
+        let controls = null;
         function textureMat(path) {
             return new THREE.MeshPhongMaterial({ map: new THREE.TextureLoader().load( path ) });
         }
@@ -95,6 +95,13 @@
             scene.add( systemeSolaire );
             camera.position.z -= 5;
 
+            controls = new THREE.OrbitControls( camera, renderer.domElement );
+//controls.addEventListener( 'change', render ); // call this only in static scenes (i.e., if there is no animation loop)
+            controls.enableDamping = true; // an animation loop is required when either damping or auto-rotation are enabled
+            controls.dampingFactor = 0.25;
+            controls.screenSpacePanning = false;
+            controls.minDistance = 1;
+            controls.maxDistance = 20;
 
         }
 
@@ -131,6 +138,7 @@
             camera.lookAt( terre.matrixWorld.getPosition() );
             // camera.position.x = 5 * Math.cos( cameraAngle );
             // camera.position.y = 3 * Math.sin( cameraAngle );
+            controls.update();
         }
 
     </script>
