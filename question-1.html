@@ -103,6 +103,18 @@
             controls.minDistance = 1;
             controls.maxDistance = 20;
 
+            var path = "images/skybox/";
+            var format = '.jpg';
+            var urls = [
+                path + 'posx' + format, path + 'negx' + format,
+                path + 'posy' + format, path + 'negy' + format,
+                path + 'posz' + format, path + 'negz' + format
+            ];
+
+            var textureCube    = new THREE.CubeTextureLoader().load( urls );
+            textureCube.format = THREE.RGBFormat;
+            scene.background   = textureCube;
+
         }
 
         // This function is called regularly to update the canvas webgl.
