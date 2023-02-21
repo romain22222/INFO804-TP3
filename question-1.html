@@ -37,20 +37,20 @@
         function createTerre() {
             let terreMaterial = textureMat("images/earth_atmos_2048.jpg");
             terreMaterial.specular = new tree.Color(1,1,1);
-            let terreGeometry = new THREE.SphereGeometry(1/3);
+            let terreGeometry = new THREE.CubeGeometry(1/3,1/3,1/3);
             return new THREE.Mesh(terreGeometry, terreMaterial);
         }
 
         function createSoleil() {
-            let soleilMaterial = colorMat(0xffff00);
-            let soleilGeometry = new THREE.SphereGeometry(1);
+            let soleilMaterial = new THREE.MeshBasicMaterial({ map: new THREE.TextureLoader().load( "images/lave.png" ) });
+            let soleilGeometry = new THREE.TorusKnotGeometry(10, 0.5, 100, 10);
             return new THREE.Mesh(soleilGeometry, soleilMaterial);
         }
 
         function createLune() {
             let luneMaterial = textureMat("images/moon_1024.jpg");
             // luneMaterial.specular = new tree.Color(1,1,1);
-            let luneGeometry = new THREE.SphereGeometry(.25);
+            let luneGeometry = new THREE.TetrahedronGeometry(.25);
             return new THREE.Mesh(luneGeometry, luneMaterial);
         }
 
@@ -82,6 +82,8 @@
             lune = createLune();
             soleil.position.set(0,0,0);
             systemeTerre.position.set(2*Math.sqrt(2), 0, 0);
+            terre.rotation.set(1,2,3);
+            lune.rotation.set(1,2,3);
             lune.position.set(1.5, 0, 0);
             systemeSolaire.add(orbiteTerre);
             systemeSolaire.add(light);
@@ -93,7 +95,7 @@
 
             // Finally, add the mesh to our scene
             scene.add( systemeSolaire );
-            camera.position.z -= 5;
+            camera.position.z -= 15;
 
             controls = new THREE.OrbitControls( camera, renderer.domElement );
 //controls.addEventListener( 'change', render ); // call this only in static scenes (i.e., if there is no animation loop)
@@ -160,12 +162,12 @@
             let angle = fracTime * Math.PI * 2;
             cameraAngle       = fracTime * Math.PI * 2 ;
             orbiteTerre.rotation.y += angle / 365; // la terre tourne en 365 jours
+            soleil.rotation.y += angle/28; // la terre tourne en 365 jours
+            soleil.rotation.x += angle/28; // la terre tourne en 365 jours
+            soleil.rotation.z += angle/28; // la terre tourne en 365 jours
             terre.rotation.y      += angle; // et en un jour sur elle-même
             orbiteLune.rotation.y  += angle / 28; // la lune tourne en 28 jours autour de la terre
             lune.rotation.y       += angle /28; // et en 28 jours aussi sur elle-même pour faire face à la terre
-            camera.lookAt( terre.matrixWorld.getPosition() );
-            // camera.position.x = 5 * Math.cos( cameraAngle );
-            // camera.position.y = 3 * Math.sin( cameraAngle );
             controls.update();
         }
 
