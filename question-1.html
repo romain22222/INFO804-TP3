@@ -115,6 +115,22 @@
             textureCube.format = THREE.RGBFormat;
             scene.background   = textureCube;
 
+            renderer.shadowMap.enabled = true;
+// rendu coûteux mais plus joli (default: THREE.PCFShadowMap)
+            renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
+            light.castShadow = true;
+// On peut aussi paramétrer la qualité du calcul
+            light.shadow.mapSize.width = 512;  // default
+            light.shadow.mapSize.height = 512; // default
+            light.shadow.camera.near = 0.5;    // default
+            light.shadow.camera.far = 50;
+
+            terre.castShadow = true;
+            terre.receiveShadow = true;
+            lune.castShadow = true;
+            lune.receiveShadow = true;
+
         }
 
         // This function is called regularly to update the canvas webgl.
@@ -140,7 +156,7 @@
             let now = Date.now();
             let deltaTime = now - curTime;
             curTime       = now;
-            let fracTime  = deltaTime / 20;
+            let fracTime  = deltaTime / 100;
             let angle = fracTime * Math.PI * 2;
             cameraAngle       = fracTime * Math.PI * 2 ;
             orbiteTerre.rotation.y += angle / 365; // la terre tourne en 365 jours
