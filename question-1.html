@@ -12,17 +12,50 @@
         let tree = THREE;
         // Checks that your browser supports WebGL.
         if ( ! Detector.webgl ) Detector.addGetWebGLMessage();
+        let curTime    = Date.now();
+        let renderer = null;
+        let scene = null;
+        let camera = null;
+        let objects = {};
+        let systemeSolaire = null;
+        let systemeTerre = null;
+        let soleil = null;
+        let terre = null;
+        let lune = null;
+        let fracTime = null;
+        let cameraAngle = null;
+        function textureMat(path) {
+            return new THREE.MeshPhongMaterial({ map: new THREE.TextureLoader().load( path ) });
+        }
 
-        var renderer = null;
-        var scene        = null;
-        var camera     = null;
-        var sphere         = null;
-        var curTime    = Date.now();
+        function colorMat(color) {
+            return new THREE.MeshPhongMaterial({color: new tree.Color(color)});
+        }
+
+        function createTerre() {
+            let terreMaterial = textureMat("images/earth_atmos_2048.jpg");
+            terreMaterial.specular = new tree.Color(1,1,1);
+            let terreGeometry = new THREE.SphereGeometry(1/3);
+            return new THREE.Mesh(terreGeometry, terreMaterial);
+        }
+
+        function createSoleil() {
+            let soleilMaterial = colorMat(0xffff00);
+            let soleilGeometry = new THREE.SphereGeometry(1);
+            return new THREE.Mesh(soleilGeometry, soleilMaterial);
+        }
+
+        function createLune() {
+            let luneMaterial = textureMat("images/moon_1024.jpg");
+            // luneMaterial.specular = new tree.Color(1,1,1);
+            let luneGeometry = new THREE.SphereGeometry(.25);
+            return new THREE.Mesh(luneGeometry, luneMaterial);
+        }
 
         // This function is called whenever the document is loaded
         function init() {
             // Get display canvas
-            var canvas = document.getElementById("webglcanvas");
+            let canvas = document.getElementById("webglcanvas");
             console.log( canvas );
 
             // Create the Three.js renderer and attach it to our canvas
@@ -35,31 +68,30 @@
             // Add    a camera so we can view the scene
             camera = new THREE.PerspectiveCamera( 45, canvas.width / canvas.height,
                 1, 4000 );
-            // Create a texture-mapped sphere and add it to the scene
-            // First, create the texture map
-            var mapUrl = "images/earth_atmos_2048.jpg";
-            var map        = new THREE.TextureLoader().load( mapUrl );
 
-            // Now, create a Basic material; pass in the map
-            //var material = new THREE.MeshBasicMaterial({ map: map });
-            var material = new THREE.MeshPhongMaterial({ map: map });
-            material.specular = new tree.Color(1,1,1);
+            let light = new THREE.PointLight( 0xffffff, 1.5);
+            light.position.set(0,0,0);
+            scene.add( light );
 
-            // Create the sphere geometry
-            var geometry = new THREE.SphereGeometry(1);
-            // And put the geometry and material together into a mesh
-            sphere = new THREE.Mesh(geometry, material);
+            systemeSolaire = new tree.Group();
+            systemeTerre = new tree.Group();
 
-            // Move the mesh back from the camera and tilt it toward the viewer
-            sphere.position.set(Math.PI / 5,Math.PI / 5,-8);
+            terre = createTerre();
+            soleil= createSoleil();
+            lune = createLune();
+            systemeSolaire.position.set(Math.PI / 5,Math.PI / 5,-8);
+            systemeTerre.position.set(2.5, 0, 0);
+            lune.position.set(1.5, 0, 0);
+            systemeSolaire.add(soleil);
+            systemeTerre.add(terre);
+            systemeTerre.add(lune);
+            systemeSolaire.add(systemeTerre);
 
             // Finally, add the mesh to our scene
-            scene.add( sphere );
+            scene.add( systemeSolaire );
+            camera.position.z -= 10;
 
-            // Add a white point light
-            let light = new THREE.PointLight( 0xffffff, 1.5);
-            light.position.set(10,10,10);
-            scene.add( light );
+
         }
 
         // This function is called regularly to update the canvas webgl.
@@ -82,15 +114,19 @@
 
         // This function is called regularly to update objects.
         function animate() {
-            // Computes how time has changed since last display
-            var now             = Date.now();
-            var deltaTime = now - curTime;
-            curTime             = now;
-            var fracTime    = deltaTime / 1000; // in seconds
-            // Now we can move objects, camera, etc.
-            // Example: rotation sphere
-            var angle = 0.1 * Math.PI * 2 * fracTime; // one turn per 10 second.
-            sphere.rotation.y += angle;
+            let now = Date.now();
+            let deltaTime = now - curTime;
+            curTime       = now;
+            let fracTime  = deltaTime / 50;
+            let angle = fracTime * Math.PI * 2;
+            cameraAngle       = deltaTime * Math.PI * 2 + 3*Math.PI / 2;
+            systemeSolaire.rotation.y += angle / 365; // la terre tourne en 365 jours
+            terre.rotation.y      += angle; // et en un jour sur elle-même
+            systemeTerre.rotation.y  += angle / 28; // la lune tourne en 28 jours autour de la terre
+            lune.rotation.y       += angle /28; // et en 28 jours aussi sur elle-même pour faire face à la terre
+            camera.lookAt( terre.matrixWorld.getPosition() );
+            camera.position.x = 5 * Math.cos( cameraAngle );
+            camera.position.y = 3 * Math.sin( cameraAngle );
         }
 
     </script>
