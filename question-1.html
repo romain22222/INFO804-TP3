@@ -88,9 +88,35 @@
             "Polar-Bear-Boy-Starry-Night-Sky-Animated-Wallpaper.jpg"
         ];
 
+        function getGeoRandom(radiusSphere) {
+            const forme = Math.floor(Math.random()*9);
+            switch (forme) {
+                case 0:
+                    return new tree.BoxGeometry(radiusSphere, radiusSphere, radiusSphere);
+                case 1:
+                    return new tree.ConeGeometry(radiusSphere, radiusSphere, 32);
+                case 2:
+                    return new tree.CylinderGeometry(radiusSphere * Math.random(), radiusSphere * Math.random(), radiusSphere, 32);
+                case 3:
+                    return new tree.DodecahedronGeometry(radiusSphere, Math.floor(Math.random() * 6));
+                case 4:
+                    return new tree.IcosahedronGeometry(radiusSphere, Math.floor(Math.random() * 6));
+                case 5:
+                    return new tree.OctahedronGeometry(radiusSphere, Math.floor(Math.random() * 6));
+                case 6:
+                    return new tree.TetrahedronGeometry(radiusSphere, Math.floor(Math.random() * 6));
+                case 7:
+                    return new tree.TorusGeometry(radiusSphere, radiusSphere * (Math.random() * .2 + .1), 32, 32);
+                case 8:
+                    return new tree.TorusKnotGeometry(radiusSphere, radiusSphere * (Math.random() * .2 + .1), 32, 32, Math.floor(Math.random() * 20), Math.floor(Math.random() * 20));
+                default:
+                    return new tree.SphereGeometry(radiusSphere);
+            }
+        }
+
         function createBoule(y, j, nbB, radiusOrbite, radiusSphere) {
             let mat = textureMat("images/BoulesSkins/" + textures[Math.round(Math.random() * (textures.length-1))]);
-            let geo = new THREE.SphereGeometry(radiusSphere);
+            let geo = getGeoRandom(radiusSphere);
             let b = new tree.Mesh(geo,mat);
             let alpha = 2 * Math.PI / nbB;
             b.position.set(radiusOrbite * Math.cos(j * alpha), y, radiusOrbite * Math.sin(j * alpha))
