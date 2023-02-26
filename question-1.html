@@ -17,23 +17,33 @@
         let renderer = null;
         let scene = null;
         let camera = null;
-        let systemeSolaire = null;
-        let systemeTerre = null;
-        let soleil = null;
-        let terre = null;
-        let lune = null;
-        let cameraAngle = null;
-        let orbiteTerre = null;
-        let orbiteLune = null;
-        let controls = null;
+
+        //Set up des planet et orbites
+        // let systemeSolaire = null;
+        // let systemeTerre = null;
+        // let soleil = null;
+        // let terre = null;
+        // let lune = null;
+        // let cameraAngle = null;
+        // let orbiteTerre = null;
+        // let orbiteLune = null;
+        // let controls = null;
+
+        let coeur;
+        let levels = [];
+        let weirdPlanetGroup;
+        let nbAnneaux;
+
+        //fonction pour les testures et Matériaux
         function textureMat(path) {
-            return new THREE.MeshPhongMaterial({ map: new THREE.TextureLoader().load( path ) });
+            return new THREE.MeshBasicMaterial({ map: new THREE.TextureLoader().load( path ) });
         }
 
         function colorMat(color) {
             return new THREE.MeshBasicMaterial({color: new tree.Color(color)});
         }
 
+        //Creation des planetes
         function createTerre() {
             let terreMaterial = textureMat("images/earth_atmos_2048.jpg");
             terreMaterial.specular = new tree.Color(1,1,1);
@@ -54,11 +64,67 @@
             return new THREE.Mesh(luneGeometry, luneMaterial);
         }
 
+        const textures = [
+            "0d356a244a08bafe05f4040a45d9f9e2--animal-wallpaper-fantasy-images.jpg",
+            "4d56ba15a846c0e8aaaa69809d68ca2e--deserts.jpg",
+            "7_Apocalypse.jpg",
+            "63b344d841c4ddbf76c825c0abea4bad.jpg",
+            "87bcf7f20cf8745485d628e49a91e5f7.jpg",
+            "642c4637ce236c2c2a771558285d892e.jpg",
+            "2365163_orig.jpg",
+            "2825503-animals-raccoons-apofiss___animal-wallpapers.jpg",
+            "a286ea9f2ee76f13706f403dd661db55.jpg",
+            "asteroid.jpg",
+            "avatar-2-film.jpg",
+            "d7nx9mg-a10f356b-563e-42a0-9563-8e1f46b5c75e.jpg",
+            "e5cd43ce2b6694678ea3a54d73d6bb92.jpg",
+            "e7a73be2887dc68af6c80b385131b58e.jpg",
+            "earth_atmos_2048.jpg",
+            "ebf668c1cc30c1f8278d57d6acf318a7.jpg",
+            "night-sky-drawing-5.png",
+            "ours-pingouin-dessin-anime-joyeux-noel_125446-553.avif",
+            "panda.jpg",
+            "pandora-the-world-of-avatar-disney-resort-orlando-3.jpg",
+            "Polar-Bear-Boy-Starry-Night-Sky-Animated-Wallpaper.jpg"
+        ];
+
+        function createBoule(y, j, nbB, radiusOrbite, radiusSphere) {
+            let mat = textureMat("images/BoulesSkins/" + textures[Math.round(Math.random() * (textures.length-1))]);
+            let geo = new THREE.SphereGeometry(radiusSphere);
+            let b = new tree.Mesh(geo,mat);
+            let alpha = 2 * Math.PI / nbB;
+            b.position.set(radiusOrbite * Math.cos(j * alpha), y, radiusOrbite * Math.sin(j * alpha))
+            return b;
+        }
+
+        function createAnneau(i, nbAnneaux, radMax, radiusSphere, nbMinSpheres) {
+            let y = radMax*2/(nbAnneaux+2) * (i+1) - radMax * (nbAnneaux+2) / (nbAnneaux+1);
+            let coucheInfo = Math.max(i, nbAnneaux + 1 - i);
+            let nbB = Math.min(i, nbAnneaux + 1 - i) * nbMinSpheres + 1;
+
+            let radiusOrbite = Math.sqrt(radMax*radMax - (radMax/(nbAnneaux+2) * (coucheInfo))*(radMax/(nbAnneaux+2) * (coucheInfo)));
+            let anneauOrbite = new tree.Group();
+            let anneauGroup = new tree.Group();
+            anneauOrbite.add(anneauGroup);
+            let boulesList = [];
+            for (let j = 0; j < nbB; j++) {
+                boulesList.push(createBoule(y, j+1, nbB, radiusOrbite, radiusSphere));
+                anneauGroup.add(boulesList[j]);
+            }
+            return [anneauGroup, anneauOrbite, boulesList, y];
+        }
+
+        function createCoeur(radius, detail) {
+            let geo = new tree.TetrahedronGeometry(radius, detail);
+            let mat = new THREE.MeshBasicMaterial({ map: new THREE.TextureLoader().load("images/World_Turtle.webp") });
+            // let mat = colorMat(0x000000);
+            return new tree.Mesh(geo, mat)
+        }
+
         // This function is called whenever the document is loaded
         function init() {
             // Get display canvas
             let canvas = document.getElementById("webglcanvas");
-            console.log( canvas );
 
             // Create the Three.js renderer and attach it to our canvas
             renderer = new THREE.WebGLRenderer( { canvas: canvas,
@@ -73,29 +139,29 @@
 
             let light = new THREE.PointLight( 0xffffff, 1.5);
 
-            systemeSolaire = new tree.Group();
-            orbiteTerre = new tree.Group();
-            systemeTerre = new tree.Group();
-            orbiteLune = new tree.Group();
-            terre = createTerre();
-            soleil= createSoleil();
-            lune = createLune();
-            soleil.position.set(0,0,0);
-            systemeTerre.position.set(2*Math.sqrt(2), 0, 0);
-            terre.rotation.set(1,2,3);
-            lune.rotation.set(1,2,3);
-            lune.position.set(1.5, 0, 0);
-            systemeSolaire.add(orbiteTerre);
-            systemeSolaire.add(light);
-            systemeSolaire.add(soleil);
-            orbiteTerre.add(systemeTerre);
-            systemeTerre.add(terre);
-            systemeTerre.add(orbiteLune);
-            orbiteLune.add(lune);
+            // systemeSolaire = new tree.Group();
+            // orbiteTerre = new tree.Group();
+            // systemeTerre = new tree.Group();
+            // orbiteLune = new tree.Group();
+            // terre = createTerre();
+            // soleil= createSoleil();
+            // lune = createLune();
+            // soleil.position.set(0,0,0);
+            // systemeTerre.position.set(2*Math.sqrt(2), 0, 0);
+            // terre.rotation.set(1,2,3);
+            // lune.rotation.set(1,2,3);
+            // lune.position.set(1.5, 0, 0);
+            // systemeSolaire.add(orbiteTerre);
+            scene.add(light);
+            // systemeSolaire.add(soleil);
+            // orbiteTerre.add(systemeTerre);
+            // systemeTerre.add(terre);
+            // systemeTerre.add(orbiteLune);
+            // orbiteLune.add(lune);
 
             // Finally, add the mesh to our scene
-            scene.add( systemeSolaire );
-            camera.position.z -= 15;
+            // scene.add( systemeSolaire );
+            // camera.position.z -= 15;
 
             controls = new THREE.OrbitControls( camera, renderer.domElement );
 //controls.addEventListener( 'change', render ); // call this only in static scenes (i.e., if there is no animation loop)
@@ -105,7 +171,7 @@
             controls.minDistance = 1;
             controls.maxDistance = 20;
 
-            var path = "images/skybox/";
+            var path = "images/MilkyWay/";
             var format = '.jpg';
             var urls = [
                 path + 'posx' + format, path + 'negx' + format,
@@ -116,22 +182,41 @@
             var textureCube    = new THREE.CubeTextureLoader().load( urls );
             textureCube.format = THREE.RGBFormat;
             scene.background   = textureCube;
+            // scene.background = new tree.Color(1,1,1);
 
-            renderer.shadowMap.enabled = true;
+            // renderer.shadowMap.enabled = true;
 // rendu coûteux mais plus joli (default: THREE.PCFShadowMap)
-            renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+//             renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
-            light.castShadow = true;
+            // light.castShadow = true;
 // On peut aussi paramétrer la qualité du calcul
-            light.shadow.mapSize.width = 512;  // default
-            light.shadow.mapSize.height = 512; // default
-            light.shadow.camera.near = 0.5;    // default
-            light.shadow.camera.far = 50;
+//             light.shadow.mapSize.width = 512;  // default
+//             light.shadow.mapSize.height = 512; // default
+//             light.shadow.camera.near = 0.5;    // default
+//             light.shadow.camera.far = 50;
 
-            terre.castShadow = true;
-            terre.receiveShadow = true;
-            lune.castShadow = true;
-            lune.receiveShadow = true;
+            // terre.castShadow = true;
+            // terre.receiveShadow = true;
+            // lune.castShadow = true;
+            // lune.receiveShadow = true;
+
+            //
+
+            nbAnneaux = 5;
+            weirdPlanetGroup = new tree.Group();
+            for (let i = 0; i < nbAnneaux; i++) {
+                levels.push(createAnneau(i+1, nbAnneaux, 5, .4, 3))
+                weirdPlanetGroup.add( levels[i][1] );
+            }
+            coeur = createCoeur(1,2);
+            weirdPlanetGroup.position.set(0,0,0);
+            camera.position.set(16,0,0);
+            camera.rotation.y = Math.PI / 2;
+            weirdPlanetGroup.add(coeur);
+            weirdPlanetGroup.rotation.y = -Math.PI / 3;
+            scene.add(weirdPlanetGroup);
+
+
 
         }
 
@@ -158,16 +243,35 @@
             let now = Date.now();
             let deltaTime = now - curTime;
             curTime       = now;
-            let fracTime  = deltaTime / 100;
+            let fracTime  = deltaTime / 10000;
             let angle = fracTime * Math.PI * 2;
-            cameraAngle       = fracTime * Math.PI * 2 ;
-            orbiteTerre.rotation.y += angle / 365; // la terre tourne en 365 jours
-            soleil.rotation.y += angle/28; // la terre tourne en 365 jours
-            soleil.rotation.x += angle/28; // la terre tourne en 365 jours
-            soleil.rotation.z += angle/28; // la terre tourne en 365 jours
-            terre.rotation.y      += angle; // et en un jour sur elle-même
-            orbiteLune.rotation.y  += angle / 28; // la lune tourne en 28 jours autour de la terre
-            lune.rotation.y       += angle /28; // et en 28 jours aussi sur elle-même pour faire face à la terre
+            // cameraAngle       = fracTime * Math.PI * 2 ;
+            // orbiteTerre.rotation.y += angle / 365; // la terre tourne en 365 jours
+            // soleil.rotation.y += angle/28; // la terre tourne en 365 jours
+            // soleil.rotation.x += angle/28; // la terre tourne en 365 jours
+            // soleil.rotation.z += angle/28; // la terre tourne en 365 jours
+            // terre.rotation.y      += angle; // et en un jour sur elle-même
+            // orbiteLune.rotation.y  += angle / 28; // la lune tourne en 28 jours autour de la terre
+            // lune.rotation.y       += angle /28; // et en 28 jours aussi sur elle-même pour faire face à la terre
+            // let i = 0;
+            // weirdPlanetGroup.traverse((ch) => {
+            //     ch.rotation.y += (i++%2 * 2 - 1) * angle / 100;
+            // })
+            // for (let j = 0; j < levels.length; j++) {
+                let middleLayer = levels[2][2]
+                for (let i = 0; i < middleLayer.length; i++) {
+                    // b.position.set(Math.cos(i * alpha) - 0.5, 0, Math.sin(i * alpha) - 0.5)
+                    let variation = new tree.Vector3(middleLayer[i].position.x,
+                        levels[2][3] + Math.sin(now/50 + i*5) * fracTime * 100 - fracTime * 50,
+                        middleLayer[i].position.z);
+                    middleLayer[i].position.set(variation.x, variation.y, variation.z);
+                }
+            // }
+
+            for (let i = 0; i < levels.length; i++) {
+                levels[i][1].rotation.y += (i%2 * 2 - 1) * (angle+ Math.random()*0.001*i);
+            }
+
             controls.update();
         }
 
@@ -176,7 +280,7 @@
 <body>
 <div id="info"> a first three.js example </div>
 <canvas id="webglcanvas" style="border: none;background-color:#000000"
-        width="600" height="500"></canvas>
+        width="1000" height="1000"></canvas>
 <!-- We run the WebGL code at the end to be sure that the document is loaded.
     -->
 <script>
